@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 concurrency:
   group: azure-app-service-${{ github.ref }}
   cancel-in-progress: true
@@ -17,12 +20,13 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -34,18 +38,25 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     environment: production
+    timeout-minutes: 15
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
+      - name: Use stable npm
+        run: npm install --global npm@11.17.0
+
+      - name: Install production dependencies
+        run: npm ci --omit=dev --no-audit --no-fund
+
       - name: Create deployment package
-        run: zip -r release.zip . -x ".git/*" ".github/*" ".env" "node_modules/*" "release.zip"
+        run: zip -r release.zip . -x ".git/*" ".github/*" ".env" "release.zip"
 
       - name: Deploy to Azure App Service
         uses: azure/webapps-deploy@v3
