@@ -4,6 +4,7 @@
   "description": "AI matcher for Free Fire team logos: paste team list, upload logos, AI assigns logo to team, export 500x500 PNG named by HEADPICS ID.",
   "main": "server.js",
   "type": "commonjs",
+  "packageManager": "yarn@1.22.22",
   "engines": {
     "node": "22.x"
   },
