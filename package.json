@@ -1,0 +1,21 @@
+{
+  "name": "ff-logo-ai-matcher",
+  "version": "1.0.0",
+  "description": "AI matcher for Free Fire team logos: paste team list, upload logos, AI assigns logo to team, export 500x500 PNG named by HEADPICS ID.",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "check": "node --check server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1",
+    "openai": "^4.104.0",
+    "dotenv": "^16.4.5"
+  }
+}

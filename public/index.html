@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FF Logo AI Matcher</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Free Fire logo workflow</p>
+      <h1>FF Logo AI Matcher</h1>
+      <p class="lede">Dán danh sách team, upload logo, để AI vision nhận team rồi xuất PNG 500x500 theo HEADPICS ID.</p>
+    </div>
+    <div class="health" id="healthBox">Đang kiểm tra server...</div>
+  </header>
+
+  <main class="shell">
+    <section class="panel api-panel" id="apiPanel">
+      <div>
+        <h2>Cấu hình AI</h2>
+        <p class="muted" id="apiHelp">Local có thể lưu key vào file .env. Khi deploy Render, đặt OPENAI_API_KEY trong Environment.</p>
+      </div>
+      <div class="api-row" id="apiRow">
+        <input id="apiKeyInput" type="password" autocomplete="off" placeholder="sk-...">
+        <button id="saveApiKeyBtn" class="primary">Lưu key local</button>
+        <button id="checkApiBtn">Kiểm tra</button>
+      </div>
+    </section>
+
+    <section class="workspace">
+      <div class="panel stack">
+        <div>
+          <h2>1. Danh sách team</h2>
+          <p class="muted">Hỗ trợ copy từ Excel, dạng dòng thường, hoặc dạng TEAM | AVATAR | HEADPICS ID. Nếu thiếu ID, hệ thống gán ID mẫu để bạn sửa sau.</p>
+        </div>
+        <textarea id="pasteBox" spellcheck="false">1 VTT EP
+2 NFV
+3 TL
+4 EOP
+5 NBGA
+6 ASTR
+7 TTE
+8 NAE</textarea>
+        <div class="button-grid">
+          <button id="parseBtn" class="primary">Nhập vào bảng</button>
+          <button id="appendBtn">Thêm tiếp</button>
+          <button id="sampleBtn">Nạp mẫu</button>
+          <button id="clearBtn" class="danger">Xóa bảng</button>
+          <button id="saveTeamsBtn">Lưu danh sách</button>
+          <button id="loadTeamsBtn">Mở đã lưu</button>
+        </div>
+      </div>
+
+      <aside class="panel stack">
+        <div>
+          <h2>2. Upload và nhận dạng</h2>
+          <p class="muted">Có thể upload nhiều logo cùng lúc. Logo không chắc sẽ chuyển xuống khu xác nhận thủ công.</p>
+        </div>
+        <label class="dropzone" for="fileInput">
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+          <span>Chọn logo</span>
+          <small>PNG, JPG, WEBP. Kéo thả vào đây cũng được.</small>
+        </label>
+        <div class="field-grid">
+          <label>Nền PNG
+            <select id="bgMode">
+              <option value="transparent">Trong suốt</option>
+              <option value="white">Trắng</option>
+              <option value="black">Đen</option>
+            </select>
+          </label>
+          <label>Ngưỡng tự gán
+            <select id="threshold">
+              <option value="0.62">Dễ gán - 62%</option>
+              <option value="0.72" selected>Chuẩn - 72%</option>
+              <option value="0.84">Khó hơn - 84%</option>
+            </select>
+          </label>
+        </div>
+        <label class="check"><input id="useLearning" type="checkbox" checked> Ưu tiên dữ liệu đã học</label>
+        <label class="check"><input id="autoLearn" type="checkbox" checked> Tự học logo AI nhận chắc</label>
+        <div class="button-grid two">
+          <button id="analyzeBtn" class="primary">AI phân tích logo</button>
+          <button id="zipBtn" class="success">Tải ZIP</button>
+          <button id="exportLearnBtn">Xuất dữ liệu học</button>
+          <button id="importLearnBtn">Nhập dữ liệu học</button>
+        </div>
+        <div class="progress"><div id="bar"></div></div>
+        <div class="stats">
+          <div><strong id="teamCount">0</strong><span>team</span></div>
+          <div><strong id="logoCount">0</strong><span>logo</span></div>
+          <div><strong id="matchedCount">0</strong><span>đã ghép</span></div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Bảng team</h2>
+          <p class="muted">Mỗi dòng đã ghép sẽ xuất file tên HEADPICS_ID.png, kích thước 500x500.</p>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>TEAM</th>
+              <th>LOGO</th>
+              <th>AVATAR</th>
+              <th>HEADPICS ID</th>
+              <th>AI nhận dạng</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Cần xác nhận</h2>
+      <p class="muted">Chọn team đúng cho logo AI chưa chắc, rồi bấm Gán & học để lần sau nhanh hơn.</p>
+      <div id="unmatched" class="unmatched"></div>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <form method="dialog" class="modal-card">
+      <h3 id="modalTitle">Dữ liệu học</h3>
+      <p class="muted" id="modalHelp"></p>
+      <textarea id="modalText" spellcheck="false"></textarea>
+      <div class="modal-actions">
+        <button id="modalCancel" value="cancel">Đóng</button>
+        <button id="modalOk" value="default" class="primary">OK</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/app.js"></script>
+</body>
+</html>
